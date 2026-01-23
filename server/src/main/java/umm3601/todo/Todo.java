@@ -11,6 +11,8 @@ import org.mongojack.ObjectId;
 // CheckStyle doesn't shout at you and cause the build
 // to fail.
 
+//copied from User.java -HH
+
 // Normally you'd want all fields to be private, but
 // we need the fields in this class to be public since
 // they will be written to by Mongo via the MongoJack
@@ -45,17 +47,17 @@ public class Todo {
 
   @Override
   public int hashCode() {
-    // This means that equal Users will hash the same, which is good.
+    // This means that equal Todos will hash the same, which is good.
     return _id.hashCode();
   }
 
-  // Having some kind of `toString()` allows us to print `User`s,
+  // Having some kind of `toString()` allows us to print `Todo`s,
   // which can be useful/necessary in error handling. This only
   // returns the name, but it could be extended to return more or
   // all of the fields combined into a single string.
   //
   // The other option would be to return `_id`, but that can be
-  // `null` if we're trying to add a new `User` to the database
+  // `null` if we're trying to add a new `Todo` to the database
   // that doesn't yet have an `_id`, so returning `name` seemed
   // the better bet.
   @Override

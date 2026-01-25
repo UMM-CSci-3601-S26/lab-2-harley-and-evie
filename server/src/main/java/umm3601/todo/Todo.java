@@ -51,7 +51,7 @@ public class Todo {
 
   // Having some kind of `toString()` allows us to print `Todo`s,
   // which can be useful/necessary in error handling. This only
-  // returns the name, but it could be extended to return more or
+  // returns the body, but it could be extended to return more or
   // all of the fields combined into a single string.
   //
   // The other option would be to return `_id`, but that can be

@@ -29,8 +29,6 @@ public class Todo {
   // name of the field as used by MongoDB.
   @SuppressWarnings({"MemberName"})
   public String _id;
-
-  public String name;
   public String owner;
   public String body;
   public String status;
@@ -62,6 +60,6 @@ public class Todo {
   // the better bet.
   @Override
   public String toString() {
-    return name;
+    return body;
   }
 }

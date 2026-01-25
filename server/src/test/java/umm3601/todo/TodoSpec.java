@@ -36,4 +36,19 @@ public class TodoSpec {
     assertFalse(todo1._id.equals(todo2._id));
   }
 
+ @Test
+  void hashCodesAreBasedOnId() {
+    todo1._id = FAKE_ID_STRING_1;
+    todo2._id = FAKE_ID_STRING_1;
+    assertTrue(todo1.hashCode() == todo2.hashCode());
+  }
+
+  @SuppressWarnings("unlikely-arg-type")
+  @Test
+  void usersAreNotEqualToOtherKindsOfThings() {
+    todo1._id = FAKE_ID_STRING_1;
+    // a user is not equal to its id even though id is used for checking equality
+    assertFalse(todo1.equals(FAKE_ID_STRING_1));
+  }
 }
+

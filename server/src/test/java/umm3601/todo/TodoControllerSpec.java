@@ -104,21 +104,18 @@ public class TodoControllerSpec {
     List<Document> testTodos = new ArrayList<>();
     testTodos.add(
       new Document()
-        .append("name", "Wash Clothes")
         .append("owner", "Mike")
         .append("body", "Wash shirts and pants")
         .append("status", false)
         .append("category", "chores"));
     testTodos.add(
       new Document()
-        .append("name", "Buy Applesauce")
         .append("owner", "Marty")
         .append("body", "Buy applesauce from Willie's")
         .append("status", false)
         .append("category", "groceries"));
     testTodos.add(
       new Document()
-        .append("name", "Finish Assignment")
         .append("owner", "Katie")
         .append("body", "Calculus Assignment #3")
         .append("status", true)
@@ -127,7 +124,6 @@ public class TodoControllerSpec {
     taskId = new ObjectId();
     Document task = new Document()
       .append("_id", taskId)
-      .append("name", "Default Task")
       .append("owner", "Pam")
       .append("body", "This is a default task description")
       .append("status", false)

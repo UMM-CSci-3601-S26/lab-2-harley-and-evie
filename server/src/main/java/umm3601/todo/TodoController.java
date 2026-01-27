@@ -1,6 +1,6 @@
 package umm3601.todo;
 
-// import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 // import static com.mongodb.client.model.Filters.regex;
 
@@ -8,14 +8,14 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-// import java.util.List;
+import java.util.List;
 // import java.util.Map;
 // import java.util.Objects;
 // import java.util.regex.Pattern;
 
-// import org.bson.Document;
+import org.bson.Document;
 import org.bson.UuidRepresentation;
-// import org.bson.conversions.Bson;
+import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import org.mongojack.JacksonMongoCollection;
 
@@ -38,11 +38,11 @@ public class TodoController implements Controller {
   private static final String API_TODOS = "/api/todos"; // Issue #1
   private static final String API_TODO_BY_ID = "/api/todos/{id}"; //Issue #2
 
+  private static final String STATUS_REGEX = "^(complete|incomplete)$";
  // static final String OWNER_KEY = "owner";
- // static final String STATUS_KEY = "status";
+  // static final String STATUS_KEY = "status";
  // static final String BODY_KEY = "body";
  // static final String CATEGORY_KEY = "category";
-
  // ^ needed for other issues -HH
 
   private final JacksonMongoCollection<Todo> todoCollection;
@@ -91,9 +91,18 @@ public class TodoController implements Controller {
    * @param ctx a Javalin HTTP context
    */
   public void getTodos(Context ctx) {
+    Bson combinedFilter = constructFilter(ctx);
+    // Bson sortingOrder = constructSortingOrder(ctx);
+
+    int limit = ctx.queryParamAsClass("limit", Integer.class)
+      .getOrDefault(0);
+    //Creates a query parameter that can be used named "limit" which is an integer.
+    //The default todo limit is '0' which means that there is no limit and all todos are displayed.
 
     ArrayList<Todo> matchingTodos = todoCollection
-      .find()  //until we set up filtering, copilot helped with this -HH
+      .find(combinedFilter)
+      // .sort()
+      .limit(limit)
       .into(new ArrayList<>());
 
     // Set the JSON body of the response to be the list of todos returned by the database.
@@ -145,5 +154,66 @@ public class TodoController implements Controller {
     server.get(API_TODOS, this::getTodos);
 
     server.get(API_TODO_BY_ID, this::getTodo);
+
+    //no specific endpoint needed for queries
+
+  }
+
+  // // @param
+  // // @return
+  // private Bson constructSortingOrder(Context ctx) {
+  //   // Sort the results. Use the `sortby` query param (default "name")
+  //   // as the field to sort by, and the query param `sortorder` (default
+  //   // "asc") to specify the sort order.
+  //   String sortBy = Objects.requireNonNullElse(ctx.queryParam("sortby"), "owner");
+  //   String sortOrder = Objects.requireNonNullElse(ctx.queryParam("sortorder"), "asc");
+  //   Bson sortingOrder = sortOrder.equals("desc") ?  Sorts.descending(sortBy) : Sorts.ascending(sortBy);
+  //   return sortingOrder;
+  // }
+
+
+
+  // // @param ctx
+  // // @return
+
+  private Bson constructFilter(Context ctx) {
+    List<Bson> filters = new ArrayList<>(); // start with an empty list of filters
+
+
+    if (ctx.queryParamMap().containsKey("status")) {
+      String status = ctx.queryParamAsClass("status", String.class)
+        .check(it -> it.matches(STATUS_REGEX), "User must have a legal status")
+        .get();
+
+        Boolean boolStatus = Boolean.valueOf(status);
+
+      filters.add(eq("status", boolStatus));
+    }
+
+    Bson combinedFilter = filters.isEmpty() ? new Document() : and(filters);
+
+    return combinedFilter;
+
+    //else
+
+
+
+    // if (ctx.queryParamMap().containsKey(COMPANY_KEY)) {
+    //   Pattern pattern = Pattern.compile(Pattern.quote(ctx.queryParam(COMPANY_KEY)), Pattern.CASE_INSENSITIVE);
+    //   filters.add(regex(COMPANY_KEY, pattern));
+    // }
+    // if (ctx.queryParamMap().containsKey(ROLE_KEY)) {
+    //   String role = ctx.queryParamAsClass(ROLE_KEY, String.class)
+    //     .check(it -> it.matches(ROLE_REGEX), "User must have a legal user role")
+    //     .get();
+    //   filters.add(eq(ROLE_KEY, role));
+    // }
+
+    // Combine the list of filters into a single filtering document.
+    // Bson combinedFilter = filters.isEmpty() ? new Document() : and(filters);
+
+    // return combinedFilter;
   }
 }
+
+

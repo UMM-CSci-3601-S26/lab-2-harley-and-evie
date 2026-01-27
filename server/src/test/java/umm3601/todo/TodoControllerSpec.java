@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 // import static org.junit.jupiter.api.Assertions.assertNotEquals;
 // import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 // import static org.junit.jupiter.api.Assertions.assertTrue;
 // import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -18,10 +19,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 // import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 // import java.util.stream.Collectors;
+import java.util.stream.Collectors;
 
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -56,6 +59,9 @@ import io.javalin.json.JavalinJackson;
 // import io.javalin.validation.ValidationError;
 // import io.javalin.validation.ValidationException;
 // import io.javalin.validation.Validator;
+import io.javalin.validation.Validation;
+import io.javalin.validation.Validator;
+import umm3601.user.UserController;
 
 
 public class TodoControllerSpec {
@@ -196,5 +202,96 @@ void canGetAllTodos() throws IOException {
   // checking if the database has the same number of todos as the captured list
 }
 
+/**
+   * Confirm that if we process a request for users with age 37,
+   * that all returned users have that age, and we get the correct
+   * number of users.
+   *
+   * The structure of this test is:
+   *
+   *    - We create a `Map` for the request's `queryParams`, that
+   *      contains a single entry, mapping the `AGE_KEY` to the
+   *      target value ("37"). This "tells" our `UserController`
+   *      that we want all the `User`s that have age 37.
+   *    - We create a validator that confirms that the code
+   *      we're testing calls `ctx.queryParamsAsClass("age", Integer.class)`,
+   *      i.e., it asks for the value in the query param map
+   *      associated with the key `"age"`, interpreted as an Integer.
+   *      That call needs to return a value of type `Validator<Integer>`
+   *      that will succeed and return the (integer) value `37` associated
+   *      with the (`String`) parameter value `"37"`.
+   *    - We then call `userController.getUsers(ctx)` to run the code
+   *      being tested with the constructed context `ctx`.
+   *    - We also use the `userListArrayCaptor` (defined above)
+   *      to capture the `ArrayList<User>` that the code under test
+   *      passes to `ctx.json(…)`. We can then confirm that the
+   *      correct list of users (i.e., all the users with age 37)
+   *      is passed in to be returned in the context.
+   *    - Now we can use a variety of assertions to confirm that
+   *      the code under test did the "right" thing:
+   *       - Confirm that the list of users has length 2
+   *       - Confirm that each user in the list has age 37
+   *       - Confirm that their names are "Jamie" and "Pat"
+   *
+   * @throws IOException
+   */
+  @Test
+  void canGetTodoStatus() throws IOException {
+  //   // We'll need both `String` and `Integer` representations of
+  //   // the target age, so I'm defining both here.
+  String completeStatus = "true";
+  String completeStatusString = completeStatus.toString();
+  // String incompleteStatus = "false";
+  // String incompleteStatusString = incompleteStatus.toString();
+
+  //   // Create a `Map` for the `queryParams` that will "return" the string
+  //   // "37" if you ask for the value associated with the `AGE_KEY`.
+    Map<String, List<String>> queryParams = new HashMap<>();
+
+    queryParams.put("status", Arrays.asList(new String[] {completeStatusString}));
+  //   // When the code being tested calls `ctx.queryParamMap()` return the
+  //   // the `queryParams` map we just built.
+    when(ctx.queryParamMap()).thenReturn(queryParams);
+  //   // When the code being tested calls `ctx.queryParam(AGE_KEY)` return the
+  //   // `targetAgeString`.
+    when(ctx.queryParam("status")).thenReturn(completeStatusString);
+
+  //   // Create a validator that confirms that when we ask for the value associated with
+  //   // `AGE_KEY` _as an integer_, we get back the integer value 37.
+    Validation validation = new Validation();
+  //   // The `AGE_KEY` should be name of the key whose value is being validated.
+  //   // You can actually put whatever you want here, because it's only used in the generation
+  //   // of testing error reports, but using the actually key value will make those reports more informative.
+    Validator<String> validator = validation.validator("status", String.class, completeStatusString);
+  //   // When the code being tested calls `ctx.queryParamAsClass("age", Integer.class)`
+  //   // we'll return the `Validator` we just constructed.
+    when(ctx.queryParamAsClass("status", String.class))
+        .thenReturn(validator);
+
+    todoController.getTodos(ctx);
+
+    // // Confirm that the code being tested calls `ctx.json(…)`, and capture whatever
+    // // is passed in as the argument when `ctx.json()` is called.
+    verify(ctx).json(todoArrayListCaptor.capture());
+    // // Confirm that the code under test calls `ctx.status(HttpStatus.OK)` is called.
+    verify(ctx).status(HttpStatus.OK);
+
+    // // Confirm that we get back two users.
+    assertEquals("complete", todoArrayListCaptor.getValue().size());
+
+    // // Confirm that todos have desired status: complete
+    for (Todo todo : todoArrayListCaptor.getValue()) {
+      assertEquals(completeStatus, todo.status);
+
+    // // Generate a list of the names of the returned users.
+    // List<String> names = userArrayListCaptor.getValue().stream().map(user -> user.name).collect(Collectors.toList());
+    // // Confirm that the returned `names` contain the two names of the
+    // // 37-year-olds.
+    // assertTrue(names.contains("Jamie"));
+    // assertTrue(names.contains("Pat"));
+
+    }
+  }
 }
+
 

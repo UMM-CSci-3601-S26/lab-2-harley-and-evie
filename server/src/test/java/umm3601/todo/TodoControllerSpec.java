@@ -17,7 +17,7 @@ import java.io.IOException;
 // import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+// import java.util.Collections;
 // import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +55,7 @@ import io.javalin.json.JavalinJackson;
 // import io.javalin.validation.Validation;
 // import io.javalin.validation.ValidationError;
 // import io.javalin.validation.ValidationException;
-// import io.javalin.validation.Validator;
+import io.javalin.validation.Validator;
 
 
 public class TodoControllerSpec {
@@ -181,7 +181,10 @@ void addRoutes() {
 
 @Test
 void canGetAllTodos() throws IOException {
-  when(ctx.queryParamMap()).thenReturn(Collections.emptyMap());
+  Validator<Integer> validator = mock(Validator.class);
+  when(ctx.queryParamAsClass("limit", Integer.class)).thenReturn(validator);
+
+  when(validator.getOrDefault(0)).thenReturn(0); //avoids null pointer for limit query that may or may not exist
 
   todoController.getTodos(ctx);
   //filling queryParamMap

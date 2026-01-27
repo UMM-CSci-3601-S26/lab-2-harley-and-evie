@@ -1,27 +1,27 @@
 package umm3601.todo;
 
-import static com.mongodb.client.model.Filters.and;
+// import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.regex;
+// import static com.mongodb.client.model.Filters.regex;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.regex.Pattern;
+// import java.util.List;
+// import java.util.Map;
+// import java.util.Objects;
+// import java.util.regex.Pattern;
 
-import org.bson.Document;
+// import org.bson.Document;
 import org.bson.UuidRepresentation;
-import org.bson.conversions.Bson;
+// import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import org.mongojack.JacksonMongoCollection;
 
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Sorts;
-import com.mongodb.client.result.DeleteResult;
+// import com.mongodb.client.model.Sorts;
+// import com.mongodb.client.result.DeleteResult;
 
 import io.javalin.Javalin;
 import io.javalin.http.BadRequestResponse;
@@ -37,13 +37,11 @@ public class TodoController implements Controller {
 
   private static final String API_TODOS = "/api/todos"; // Issue #1
   private static final String API_TODO_BY_ID = "/api/todos/{id}"; //Issue #2
-  private static final String API_TODO_LIMIT_KEY = "/api/todos?limit=7"; //Issue #3
+  //Issue #3 doesn't need an API string because it's a query
 
  // static final String STATUS_KEY = "status";
  // static final String BODY_KEY = "body";
  // static final String CATEGORY_KEY = "category";
- private static final int REASONABLE_TODO_LIMIT = 7;
-
  // ^ needed for other issues -HH
 
   private final JacksonMongoCollection<Todo> todoCollection;
@@ -92,18 +90,19 @@ public class TodoController implements Controller {
    * @param ctx a Javalin HTTP context
    */
   public void getTodos(Context ctx) {
-    Bson combinedFilter = constructFilter(ctx);
-    Bson sortingOrder = constructSortingOrder(ctx);
-    Integer limit = ctx.attribute("limit");  //Evie description
+    // Bson combinedFilter = constructFilter(ctx);
+    // Bson sortingOrder = constructSortingOrder(ctx);
+
+    int limit = ctx.queryParamAsClass("limit", Integer.class)
+      .getOrDefault(0);
+    //Creates a query parameter that can be used named "limit" which is an integer.
+    //The default todo limit is '0' which means that there is no limit and all todos are displayed.
 
     ArrayList<Todo> matchingTodos = todoCollection
-      .find(combinedFilter)  //until we set up filtering, copilot helped with this -HH
-      .sort(sortingOrder)
+      .find()
+      // .sort()
+      .limit(limit)
       .into(new ArrayList<>());
-
-
-
-
 
     // Set the JSON body of the response to be the list of todos returned by the database.
     // According to the Javalin documentation (https://javalin.io/documentation#context),
@@ -155,48 +154,50 @@ public class TodoController implements Controller {
 
     server.get(API_TODO_BY_ID, this::getTodo);
 
-    server.get(API_TODO_LIMIT_KEY, this::getTodos);
+    //no specific endpoint needed for query
 
   }
 
-  //@param
-  //@return
-  private Bson constructSortingOrder(Context ctx) {
-    // Sort the results. Use the `sortby` query param (default "name")
-    // as the field to sort by, and the query param `sortorder` (default
-    // "asc") to specify the sort order.
-    String sortBy = Objects.requireNonNullElse(ctx.queryParam("sortby"), "owner");
-    String sortOrder = Objects.requireNonNullElse(ctx.queryParam("sortorder"), "asc");
-    Bson sortingOrder = sortOrder.equals("desc") ?  Sorts.descending(sortBy) : Sorts.ascending(sortBy);
-    return sortingOrder;
-  }
+  // // @param
+  // // @return
+  // private Bson constructSortingOrder(Context ctx) {
+  //   // Sort the results. Use the `sortby` query param (default "name")
+  //   // as the field to sort by, and the query param `sortorder` (default
+  //   // "asc") to specify the sort order.
+  //   String sortBy = Objects.requireNonNullElse(ctx.queryParam("sortby"), "owner");
+  //   String sortOrder = Objects.requireNonNullElse(ctx.queryParam("sortorder"), "asc");
+  //   Bson sortingOrder = sortOrder.equals("desc") ?  Sorts.descending(sortBy) : Sorts.ascending(sortBy);
+  //   return sortingOrder;
+  // }
 
 
 
-  // @param ctx
-  // @return
+  // // @param ctx
+  // // @return
 
-  private Bson constructFilter(Context ctx) {
-    List<Bson> filters = new ArrayList<>(); // start with an empty list of filters
+  // private Bson constructFilter(Context ctx) {
+  //   List<Bson> filters = new ArrayList<>(); // start with an empty list of filters
 
-    if (ctx.queryParamMap().containsKey(API_TODO_LIMIT_KEY)) {
-      int targetLimit = ctx.queryParamAsClass(API_TODO_LIMIT_KEY, Integer.class)
-        .check(it -> it >= 0, "User's todo must have no less than zero tasks; you provided " + ctx.queryParam(API_TODO_LIMIT_KEY))
-        .check(it -> it <= REASONABLE_TODO_LIMIT,
-          "User's todo list must be less than " + REASONABLE_TODO_LIMIT + "; you provided " + ctx.queryParam(API_TODO_LIMIT_KEY))
-        .get();
-      //filters.add(eq(AGE_KEY, targetAge));
-      ctx.attribute("limit", targetLimit);
-    }
-    if (filters.isEmpty()) {  //asked copilot, to help with this portion of the code
-      return new Document();  //It gave me one line, that describes what is happening in this for-loop
-    } else {                  //But I thought it would be easier to follow and understand by breaking it into multiple steps -Evie
-      return and(filters);
-      //This for-loop checks whether or not there are filters. If not, a new document is created, representing a lack of filters.
-      //Otherwise, the code will combine the filters and return the result.
-    }
+  //   if (ctx.queryParamMap().containsKey(API_TODO_LIMIT_KEY)) {
+  //     int targetLimit = ctx.queryParamAsClass(API_TODO_LIMIT_KEY, Integer.class)
+  //       .check(it -> it <= REASONABLE_TODO_LIMIT,
+  //         "User's todo list must be less than " + REASONABLE_TODO_LIMIT + "; you provided "
+  //         + ctx.queryParam(API_TODO_LIMIT_KEY))
+  //       .get();
+  //     filters.add(eq(API_TODO_LIMIT_KEY, targetLimit));
+  //     //ctx.attribute("limit", targetLimit);
+  //   }
+  //   if (filters.isEmpty()) {  //asked copilot, to help with this portion of the code
+  //     return new Document();  //It gave me one line, that describes what is happening in this for-loop
+  //   } else {                  //But I thought it would be easier to follow and understand by breaking it
+  //                              into multiple steps -Evie
+  //     return and(filters);
+  //     //This for-loop checks whether or not there are filters. If not, a new document is created, representing
+  //     a lack of filters.
+  //     //Otherwise, the code will combine the filters and return the result.
+  //   }
 
-    }
+  //   }
 
 
     // if (ctx.queryParamMap().containsKey(COMPANY_KEY)) {

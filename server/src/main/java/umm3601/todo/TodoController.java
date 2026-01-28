@@ -4,9 +4,9 @@ import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 // import static com.mongodb.client.model.Filters.regex;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+// import java.nio.charset.StandardCharsets;
+// import java.security.MessageDigest;
+// import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 // import java.util.Map;
@@ -22,6 +22,7 @@ import org.mongojack.JacksonMongoCollection;
 import com.mongodb.client.MongoDatabase;
 // import com.mongodb.client.model.Sorts;
 // import com.mongodb.client.result.DeleteResult;
+import com.mongodb.client.model.Filters;
 
 import io.javalin.Javalin;
 import io.javalin.http.BadRequestResponse;
@@ -40,8 +41,9 @@ public class TodoController implements Controller {
   //Issue #3 doesn't need an API string because it's a query
 
   private static final String STATUS_REGEX = "^(complete|incomplete)$";
+  private static final String BODY_REGEX = ".*";
+
  // static final String OWNER_KEY = "owner";
- // static final String BODY_KEY = "body";
  // static final String CATEGORY_KEY = "category";
  // ^ needed for other issues -HH
 
@@ -114,40 +116,7 @@ public class TodoController implements Controller {
     ctx.status(HttpStatus.OK);
  }
 
-  /**
-   * Utility function to generate the md5 hash for a given string
-   *
-   * @param str the string to generate a md5 for
-   */
-  public String md5(String str) throws NoSuchAlgorithmException {
-    MessageDigest md = MessageDigest.getInstance("MD5");
-    byte[] hashInBytes = md.digest(str.toLowerCase().getBytes(StandardCharsets.UTF_8));
 
-    StringBuilder result = new StringBuilder();
-    for (byte b : hashInBytes) {
-      result.append(String.format("%02x", b));
-    }
-    return result.toString();
-  }
-
-  /**
-   * Sets up routes for the `todo` collection endpoints.
-   * A TodoController instance handles the todo endpoints,
-   * and the addRoutes method adds the routes to this controller.
-   *
-   * These endpoints are:
-   *   - `GET /api/todos/`
-   *       - Get a list of all todos
-   *
-   * GROUPS SHOULD CREATE THEIR OWN CONTROLLERS THAT IMPLEMENT THE
-   * `Controller` INTERFACE FOR WHATEVER DATA THEY'RE WORKING WITH.
-   * You'll then implement the `addRoutes` method for that controller,
-   * which will set up the routes for that data. The `Server#setupRoutes`
-   * method will then call `addRoutes` for each controller, which will
-   * add the routes for that controller's data.
-   *
-   * @param server The Javalin server instance
-   */
   @Override
   public void addRoutes(Javalin server) {
     // List users, filtered using query parameters
@@ -158,23 +127,6 @@ public class TodoController implements Controller {
     //no specific endpoint needed for queries
 
   }
-
-  // // @param
-  // // @return
-  // private Bson constructSortingOrder(Context ctx) {
-  //   // Sort the results. Use the `sortby` query param (default "name")
-  //   // as the field to sort by, and the query param `sortorder` (default
-  //   // "asc") to specify the sort order.
-  //   String sortBy = Objects.requireNonNullElse(ctx.queryParam("sortby"), "owner");
-  //   String sortOrder = Objects.requireNonNullElse(ctx.queryParam("sortorder"), "asc");
-  //   Bson sortingOrder = sortOrder.equals("desc") ?  Sorts.descending(sortBy) : Sorts.ascending(sortBy);
-  //   return sortingOrder;
-  // }
-
-
-
-  // // @param ctx
-  // // @return
 
   private Bson constructFilter(Context ctx) {
     List<Bson> filters = new ArrayList<>(); // start with an empty list of filters
@@ -191,86 +143,23 @@ public class TodoController implements Controller {
           default -> throw new IllegalArgumentException("Unexpected status: " + status);
         };  //in the case that the status is neither "compete" nor "incomplete,"
             // then and exception is thrown that stops execution
+            // -Evie (I forgot to reference this early on, but I did have help from AI(Copilot) coming up
+            //  with this portion of code)
 
      filters.add(eq("status", boolStatus));
     }
 
+    if (ctx.queryParamMap().containsKey("contains")) {  //  ?contains= ___
+      String wordCase = ctx.queryParamAsClass("contains", String.class)
+        .check(it -> it.matches(BODY_REGEX), "Todo body must have contents")
+        .get();
+
+      filters.add(Filters.regex("body", wordCase)); //Filter needs to include the search, but not be only the search
+    }
     Bson combinedFilter = filters.isEmpty() ? new Document() : and(filters);
 
-     return combinedFilter;
+    return combinedFilter;
 
-    // if (ctx.queryParamMap().containsKey(COMPANY_KEY)) {
-    //   Pattern pattern = Pattern.compile(Pattern.quote(ctx.queryParam(COMPANY_KEY)), Pattern.CASE_INSENSITIVE);
-    //   filters.add(regex(COMPANY_KEY, pattern));
-    // }
-    // if (ctx.queryParamMap().containsKey(ROLE_KEY)) {
-    //   String role = ctx.queryParamAsClass(ROLE_KEY, String.class)
-    //     .check(it -> it.matches(ROLE_REGEX), "User must have a legal user role")
-    //     .get();
-    //   filters.add(eq(ROLE_KEY, role));
-    // }
-
-    // Combine the list of filters into a single filtering document.
-    // Bson combinedFilter = filters.isEmpty() ? new Document() : and(filters);
-
-    // return combinedFilter;
   }
 
-  // // @param
-  // // @return
-  // private Bson constructSortingOrder(Context ctx) {
-  //   // Sort the results. Use the `sortby` query param (default "name")
-  //   // as the field to sort by, and the query param `sortorder` (default
-  //   // "asc") to specify the sort order.
-  //   String sortBy = Objects.requireNonNullElse(ctx.queryParam("sortby"), "owner");
-  //   String sortOrder = Objects.requireNonNullElse(ctx.queryParam("sortorder"), "asc");
-  //   Bson sortingOrder = sortOrder.equals("desc") ?  Sorts.descending(sortBy) : Sorts.ascending(sortBy);
-  //   return sortingOrder;
-  // }
-
-
-
-  // // @param ctx
-  // // @return
-
-  // private Bson constructFilter(Context ctx) {
-  //   List<Bson> filters = new ArrayList<>(); // start with an empty list of filters
-
-  //   if (ctx.queryParamMap().containsKey(API_TODO_LIMIT_KEY)) {
-  //     int targetLimit = ctx.queryParamAsClass(API_TODO_LIMIT_KEY, Integer.class)
-  //       .check(it -> it <= REASONABLE_TODO_LIMIT,
-  //         "User's todo list must be less than " + REASONABLE_TODO_LIMIT + "; you provided "
-  //         + ctx.queryParam(API_TODO_LIMIT_KEY))
-  //       .get();
-  //     filters.add(eq(API_TODO_LIMIT_KEY, targetLimit));
-  //     //ctx.attribute("limit", targetLimit);
-  //   }
-  //   if (filters.isEmpty()) {  //asked copilot, to help with this portion of the code
-  //     return new Document();  //It gave me one line, that describes what is happening in this for-loop
-  //   } else {                  //But I thought it would be easier to follow and understand by breaking it
-  //                              into multiple steps -Evie
-  //     return and(filters);
-  //     //This for-loop checks whether or not there are filters. If not, a new document is created, representing
-  //     a lack of filters.
-  //     //Otherwise, the code will combine the filters and return the result.
-  //   }
-
-  //   }
-
-
-    // if (ctx.queryParamMap().containsKey(COMPANY_KEY)) {
-    //   Pattern pattern = Pattern.compile(Pattern.quote(ctx.queryParam(COMPANY_KEY)), Pattern.CASE_INSENSITIVE);
-    //   filters.add(regex(COMPANY_KEY, pattern));
-    // }
-    // if (ctx.queryParamMap().containsKey(ROLE_KEY)) {
-    //   String role = ctx.queryParamAsClass(ROLE_KEY, String.class)
-    //     .check(it -> it.matches(ROLE_REGEX), "User must have a legal user role")
-    //     .get();
-    //   filters.add(eq(ROLE_KEY, role));
-    // }
-
-    // Combine the list of filters into a single filtering document.
-    // Bson combinedFilter = filters.isEmpty() ? new Document() : and(filters);
-
-    // return combinedFilter;
 }

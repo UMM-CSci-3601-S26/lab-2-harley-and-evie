@@ -37,10 +37,10 @@ public class TodoController implements Controller {
 
   private static final String API_TODOS = "/api/todos"; // Issue #1
   private static final String API_TODO_BY_ID = "/api/todos/{id}"; //Issue #2
+  //Issue #3 doesn't need an API string because it's a query
 
   private static final String STATUS_REGEX = "^(complete|incomplete)$";
  // static final String OWNER_KEY = "owner";
-  // static final String STATUS_KEY = "status";
  // static final String BODY_KEY = "body";
  // static final String CATEGORY_KEY = "category";
  // ^ needed for other issues -HH
@@ -215,6 +215,62 @@ public class TodoController implements Controller {
 
     // return combinedFilter;
   }
+
+  // // @param
+  // // @return
+  // private Bson constructSortingOrder(Context ctx) {
+  //   // Sort the results. Use the `sortby` query param (default "name")
+  //   // as the field to sort by, and the query param `sortorder` (default
+  //   // "asc") to specify the sort order.
+  //   String sortBy = Objects.requireNonNullElse(ctx.queryParam("sortby"), "owner");
+  //   String sortOrder = Objects.requireNonNullElse(ctx.queryParam("sortorder"), "asc");
+  //   Bson sortingOrder = sortOrder.equals("desc") ?  Sorts.descending(sortBy) : Sorts.ascending(sortBy);
+  //   return sortingOrder;
+  // }
+
+
+
+  // // @param ctx
+  // // @return
+
+  // private Bson constructFilter(Context ctx) {
+  //   List<Bson> filters = new ArrayList<>(); // start with an empty list of filters
+
+  //   if (ctx.queryParamMap().containsKey(API_TODO_LIMIT_KEY)) {
+  //     int targetLimit = ctx.queryParamAsClass(API_TODO_LIMIT_KEY, Integer.class)
+  //       .check(it -> it <= REASONABLE_TODO_LIMIT,
+  //         "User's todo list must be less than " + REASONABLE_TODO_LIMIT + "; you provided "
+  //         + ctx.queryParam(API_TODO_LIMIT_KEY))
+  //       .get();
+  //     filters.add(eq(API_TODO_LIMIT_KEY, targetLimit));
+  //     //ctx.attribute("limit", targetLimit);
+  //   }
+  //   if (filters.isEmpty()) {  //asked copilot, to help with this portion of the code
+  //     return new Document();  //It gave me one line, that describes what is happening in this for-loop
+  //   } else {                  //But I thought it would be easier to follow and understand by breaking it
+  //                              into multiple steps -Evie
+  //     return and(filters);
+  //     //This for-loop checks whether or not there are filters. If not, a new document is created, representing
+  //     a lack of filters.
+  //     //Otherwise, the code will combine the filters and return the result.
+  //   }
+
+  //   }
+
+
+    // if (ctx.queryParamMap().containsKey(COMPANY_KEY)) {
+    //   Pattern pattern = Pattern.compile(Pattern.quote(ctx.queryParam(COMPANY_KEY)), Pattern.CASE_INSENSITIVE);
+    //   filters.add(regex(COMPANY_KEY, pattern));
+    // }
+    // if (ctx.queryParamMap().containsKey(ROLE_KEY)) {
+    //   String role = ctx.queryParamAsClass(ROLE_KEY, String.class)
+    //     .check(it -> it.matches(ROLE_REGEX), "User must have a legal user role")
+    //     .get();
+    //   filters.add(eq(ROLE_KEY, role));
+    // }
+
+    // Combine the list of filters into a single filtering document.
+    // Bson combinedFilter = filters.isEmpty() ? new Document() : and(filters);
+
+    // return combinedFilter;
 }
-
-

@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-// import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 // import java.util.stream.Collectors;
@@ -60,7 +59,6 @@ import io.javalin.json.JavalinJackson;
 // import io.javalin.validation.ValidationException;
 import io.javalin.validation.Validator;
 // import io.javalin.validation.Validation;
-// import io.javalin.validation.Validator;
 // import umm3601.user.UserController;
 
 
@@ -187,7 +185,10 @@ void addRoutes() {
 
 @Test
 void canGetAllTodos() throws IOException {
-  when(ctx.queryParamMap()).thenReturn(Collections.emptyMap());
+  Validator<Integer> validator = mock(Validator.class);
+  when(ctx.queryParamAsClass("limit", Integer.class)).thenReturn(validator);
+
+  when(validator.getOrDefault(0)).thenReturn(0); //avoids null pointer for limit query that may or may not exist
 
   Validator<Integer> validator = mock(Validator.class);
   when(ctx.queryParamAsClass("limit", Integer.class)).thenReturn(validator);

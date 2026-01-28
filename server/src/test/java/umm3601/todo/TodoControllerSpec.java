@@ -238,12 +238,9 @@ void canGetAllTodos() throws IOException {
    */
   @Test
   void canGetTodoStatus() throws IOException {
-  //   // We'll need both `String` and `Integer` representations of
-  //   // the target age, so I'm defining both here.
+
   String completeStatus = "complete";
   String completeStatusString = completeStatus.toString();
-  // String incompleteStatus = "false";
-  // String incompleteStatusString = incompleteStatus.toString();
 
     Map<String, List<String>> queryParams = new HashMap<>();
 
@@ -251,8 +248,8 @@ void canGetAllTodos() throws IOException {
   // When the code being tested calls `ctx.queryParamMap()` return the
   // the `queryParams` map we just built.
     when(ctx.queryParamMap()).thenReturn(queryParams);
-  // When the code being tested calls `ctx.queryParam(AGE_KEY)` return the
-  // `targetAgeString`.
+  // When the code being tested calls `ctx.queryParam("status")` return the
+  // `completeStatusString`.
     when(ctx.queryParam("status")).thenReturn(completeStatusString);
 
   // Create a validator that confirms that when we ask for the value associated with
@@ -266,7 +263,7 @@ void canGetAllTodos() throws IOException {
   Validator<Integer> limitValidator = mock(Validator.class);
   when(ctx.queryParamAsClass("limit", Integer.class)).thenReturn(limitValidator);
   when(limitValidator.getOrDefault(0)).thenReturn(0);
-    // When the code being tested calls `ctx.queryParamAsClass("age", Integer.class)`
+    // When the code being tested calls `ctx.queryParamAsClass("status", Integer.class)`
     // we'll return the `Validator` we just constructed.
 
     todoController.getTodos(ctx);
@@ -277,11 +274,10 @@ void canGetAllTodos() throws IOException {
     // Confirm that the code under test calls `ctx.status(HttpStatus.OK)` is called.
     verify(ctx).status(HttpStatus.OK);
 
-    // Confirm that we get back two users.
+    // Confirm that we get back one todo.
 
     assertEquals(1, todoArrayListCaptor.getValue().size());
 
-    // assertEquals("complete", todoArrayListCaptor.getValue().size());
 
     // Confirm that todos have desired status: complete
     for (Todo todo : todoArrayListCaptor.getValue()) {

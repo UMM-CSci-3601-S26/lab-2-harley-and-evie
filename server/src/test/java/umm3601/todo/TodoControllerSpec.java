@@ -427,6 +427,37 @@ void canGetAllTodos() throws IOException {
 
     assertEquals(1, todoArrayListCaptor.getValue().size());
     }
+
+        @Test
+    void testCategoriesFilter() {
+    String category = "chores"; //string for owner
+
+    Map<String, List<String>> queryParams = new HashMap<>();
+
+    queryParams.put("category", Arrays.asList(new String[] {category}));
+
+    when(ctx.queryParamMap()).thenReturn(queryParams);
+    when(ctx.queryParam("category")).thenReturn(category);
+
+  Validator<String> categoryValidator = mock(Validator.class);
+  when(ctx.queryParamAsClass("category", String.class)).thenReturn(categoryValidator);
+  when(categoryValidator.check(any(), anyString())).thenReturn(categoryValidator);
+  when(categoryValidator.get()).thenReturn(category);
+
+  Validator<Integer> limitValidator = mock(Validator.class);
+  when(ctx.queryParamAsClass("limit", Integer.class)).thenReturn(limitValidator);
+  when(limitValidator.getOrDefault(0)).thenReturn(0);
+
+    todoController.getTodos(ctx);
+
+    verify(ctx).json(todoArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    List<Todo> returned = todoArrayListCaptor.getValue();
+
+    assertFalse(returned.isEmpty());
+    assertEquals("chores", returned.get(0).category);
+    }
   }
 
 

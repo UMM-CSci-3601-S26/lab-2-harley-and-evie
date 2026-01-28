@@ -6,9 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 // import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-// import static org.junit.jupiter.api.Assertions.assertTrue;
 // import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 // import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -24,7 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 // import java.util.stream.Collectors;
-import java.util.stream.Collectors;
+// import java.util.stream.Collectors;
 
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -58,10 +58,10 @@ import io.javalin.json.JavalinJackson;
 // import io.javalin.validation.Validation;
 // import io.javalin.validation.ValidationError;
 // import io.javalin.validation.ValidationException;
-// import io.javalin.validation.Validator;
-import io.javalin.validation.Validation;
 import io.javalin.validation.Validator;
-import umm3601.user.UserController;
+// import io.javalin.validation.Validation;
+// import io.javalin.validation.Validator;
+// import umm3601.user.UserController;
 
 
 public class TodoControllerSpec {
@@ -189,6 +189,10 @@ void addRoutes() {
 void canGetAllTodos() throws IOException {
   when(ctx.queryParamMap()).thenReturn(Collections.emptyMap());
 
+  Validator<Integer> validator = mock(Validator.class);
+  when(ctx.queryParamAsClass("limit", Integer.class)).thenReturn(validator);
+  when(validator.getOrDefault(0)).thenReturn(0);
+
   todoController.getTodos(ctx);
   //filling queryParamMap
 
@@ -239,56 +243,52 @@ void canGetAllTodos() throws IOException {
   void canGetTodoStatus() throws IOException {
   //   // We'll need both `String` and `Integer` representations of
   //   // the target age, so I'm defining both here.
-  String completeStatus = "true";
+  String completeStatus = "complete";
   String completeStatusString = completeStatus.toString();
   // String incompleteStatus = "false";
   // String incompleteStatusString = incompleteStatus.toString();
 
-  //   // Create a `Map` for the `queryParams` that will "return" the string
-  //   // "37" if you ask for the value associated with the `AGE_KEY`.
     Map<String, List<String>> queryParams = new HashMap<>();
 
     queryParams.put("status", Arrays.asList(new String[] {completeStatusString}));
-  //   // When the code being tested calls `ctx.queryParamMap()` return the
-  //   // the `queryParams` map we just built.
+  // When the code being tested calls `ctx.queryParamMap()` return the
+  // the `queryParams` map we just built.
     when(ctx.queryParamMap()).thenReturn(queryParams);
-  //   // When the code being tested calls `ctx.queryParam(AGE_KEY)` return the
-  //   // `targetAgeString`.
+  // When the code being tested calls `ctx.queryParam(AGE_KEY)` return the
+  // `targetAgeString`.
     when(ctx.queryParam("status")).thenReturn(completeStatusString);
 
-  //   // Create a validator that confirms that when we ask for the value associated with
-  //   // `AGE_KEY` _as an integer_, we get back the integer value 37.
-    Validation validation = new Validation();
-  //   // The `AGE_KEY` should be name of the key whose value is being validated.
-  //   // You can actually put whatever you want here, because it's only used in the generation
-  //   // of testing error reports, but using the actually key value will make those reports more informative.
-    Validator<String> validator = validation.validator("status", String.class, completeStatusString);
-  //   // When the code being tested calls `ctx.queryParamAsClass("age", Integer.class)`
-  //   // we'll return the `Validator` we just constructed.
-    when(ctx.queryParamAsClass("status", String.class))
-        .thenReturn(validator);
+  // Create a validator that confirms that when we ask for the value associated with
+  // You can actually put whatever you want here, because it's only used in the generation
+  // of testing error reports, but using the actually key value will make those reports more informative.
+  Validator<String> statusValidator = mock(Validator.class);
+  when(ctx.queryParamAsClass("status", String.class)).thenReturn(statusValidator);
+  when(statusValidator.check(any(), anyString())).thenReturn(statusValidator);
+  when(statusValidator.get()).thenReturn("complete");
+
+  Validator<Integer> limitValidator = mock(Validator.class);
+  when(ctx.queryParamAsClass("limit", Integer.class)).thenReturn(limitValidator);
+  when(limitValidator.getOrDefault(0)).thenReturn(0);
+    // When the code being tested calls `ctx.queryParamAsClass("age", Integer.class)`
+    // we'll return the `Validator` we just constructed.
 
     todoController.getTodos(ctx);
 
-    // // Confirm that the code being tested calls `ctx.json(…)`, and capture whatever
-    // // is passed in as the argument when `ctx.json()` is called.
+    // Confirm that the code being tested calls `ctx.json(…)`, and capture whatever
+    // is passed in as the argument when `ctx.json()` is called.
     verify(ctx).json(todoArrayListCaptor.capture());
-    // // Confirm that the code under test calls `ctx.status(HttpStatus.OK)` is called.
+    // Confirm that the code under test calls `ctx.status(HttpStatus.OK)` is called.
     verify(ctx).status(HttpStatus.OK);
 
-    // // Confirm that we get back two users.
-    assertEquals("complete", todoArrayListCaptor.getValue().size());
+    // Confirm that we get back two users.
 
-    // // Confirm that todos have desired status: complete
+    assertEquals(1, todoArrayListCaptor.getValue().size());
+
+    // assertEquals("complete", todoArrayListCaptor.getValue().size());
+
+    // Confirm that todos have desired status: complete
     for (Todo todo : todoArrayListCaptor.getValue()) {
-      assertEquals(completeStatus, todo.status);
-
-    // // Generate a list of the names of the returned users.
-    // List<String> names = userArrayListCaptor.getValue().stream().map(user -> user.name).collect(Collectors.toList());
-    // // Confirm that the returned `names` contain the two names of the
-    // // 37-year-olds.
-    // assertTrue(names.contains("Jamie"));
-    // assertTrue(names.contains("Pat"));
+      assertTrue(todo.status);
 
     }
   }

@@ -31,7 +31,7 @@ public class Todo {
   public String _id;
   public String owner;
   public String body;
-  public String status;
+  public Boolean status;
   public String category;
 
   @Override

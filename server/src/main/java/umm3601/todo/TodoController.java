@@ -157,12 +157,20 @@ public class TodoController implements Controller {
       filters.add(Filters.regex("body", wordCase)); //Filter needs to include the search, but not be only the search
     }
 
-    if (ctx.queryParamMap().containsKey("owner")) {  //  ?contains= ___
-      String wordCase = ctx.queryParamAsClass("owner", String.class)
+    if (ctx.queryParamMap().containsKey("owner")) {  //  ?owner= ___
+      String wordCase1 = ctx.queryParamAsClass("owner", String.class)
         .check(it -> it.matches(BODY_REGEX), "Todo owner must have a name")
         .get();
 
-      filters.add(eq("owner", wordCase)); //Filter needs to be full owner name in order to work
+      filters.add(eq("owner", wordCase1)); //Filter needs to be full owner name in order to work
+    }
+
+    if (ctx.queryParamMap().containsKey("category")) {  //  ?category= ___
+      String wordCase2 = ctx.queryParamAsClass("category", String.class)
+        .check(it -> it.matches(BODY_REGEX), "Todo category must have exist")
+        .get();
+
+      filters.add(eq("category", wordCase2)); //Filter needs to be full category name in order to work
     }
 
     Bson combinedFilter = filters.isEmpty() ? new Document() : and(filters);

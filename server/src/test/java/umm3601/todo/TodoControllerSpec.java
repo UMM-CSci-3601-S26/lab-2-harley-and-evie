@@ -190,10 +190,6 @@ void canGetAllTodos() throws IOException {
 
   when(validator.getOrDefault(0)).thenReturn(0); //avoids null pointer for limit query that may or may not exist
 
-  Validator<Integer> validator = mock(Validator.class);
-  when(ctx.queryParamAsClass("limit", Integer.class)).thenReturn(validator);
-  when(validator.getOrDefault(0)).thenReturn(0);
-
   todoController.getTodos(ctx);
   //filling queryParamMap
 

@@ -12,6 +12,7 @@ import java.util.List;
 // import java.util.Map;
 // import java.util.Objects;
 // import java.util.regex.Pattern;
+import java.util.Set;
 
 import org.bson.Document;
 import org.bson.UuidRepresentation;
@@ -23,6 +24,7 @@ import com.mongodb.client.MongoDatabase;
 // import com.mongodb.client.model.Sorts;
 // import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Sorts;
 
 import io.javalin.Javalin;
 import io.javalin.http.BadRequestResponse;
@@ -94,7 +96,7 @@ public class TodoController implements Controller {
    */
   public void getTodos(Context ctx) {
     Bson combinedFilter = constructFilter(ctx);
-    // Bson sortingOrder = constructSortingOrder(ctx);
+    Bson sortingOrder = constructSortingOrder(ctx);
 
     int limit = ctx.queryParamAsClass("limit", Integer.class)
       .getOrDefault(0);
@@ -103,7 +105,7 @@ public class TodoController implements Controller {
 
     ArrayList<Todo> matchingTodos = todoCollection
       .find(combinedFilter)
-      // .sort()
+      .sort(sortingOrder)
       .limit(limit)
       .into(new ArrayList<>());
 
@@ -177,4 +179,12 @@ public class TodoController implements Controller {
 
     return combinedFilter;
   }
+
+  private Bson constructSortingOrder(Context ctx) {
+    Set<String> allowedFields = Set.of("owner", "body", "status", "category");
+    String orderBy = ctx.queryParam("orderBy");
+    return Sorts.ascending(orderBy);
+    //this method's coverage is covered in the getAllTodos test (as well as others)
+  }
+
 }

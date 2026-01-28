@@ -201,6 +201,10 @@ void canGetAllTodos() throws IOException {
 
   when(validator.getOrDefault(0)).thenReturn(0); //avoids null pointer for limit query that may or may not exist
 
+  when(ctx.queryParam("orderBy")).thenReturn("owner"); //had to add these because they were additional queries that
+  when(ctx.queryParam("sortorder")).thenReturn("asc"); //needed to be mocked
+
+
   todoController.getTodos(ctx);
   //filling queryParamMap
 
@@ -259,6 +263,7 @@ void canGetAllTodos() throws IOException {
   // When the code being tested calls `ctx.queryParamMap()` return the
   // the `queryParams` map we just built.
     when(ctx.queryParamMap()).thenReturn(queryParams);
+
   // When the code being tested calls `ctx.queryParam("status")` return the
   // `completeStatusString`.
     when(ctx.queryParam("status")).thenReturn(completeStatusString);
@@ -276,6 +281,9 @@ void canGetAllTodos() throws IOException {
   when(limitValidator.getOrDefault(0)).thenReturn(0);
     // When the code being tested calls `ctx.queryParamAsClass("status", Integer.class)`
     // we'll return the `Validator` we just constructed.
+
+  when(ctx.queryParam("orderBy")).thenReturn("owner"); //had to add these because they were additional queries that
+  when(ctx.queryParam("sortorder")).thenReturn("asc"); //needed to be mocked
 
     todoController.getTodos(ctx);
 
@@ -317,6 +325,9 @@ void canGetAllTodos() throws IOException {
   Validator<Integer> limitValidator = mock(Validator.class);
   when(ctx.queryParamAsClass("limit", Integer.class)).thenReturn(limitValidator);
   when(limitValidator.getOrDefault(0)).thenReturn(0);
+
+  when(ctx.queryParam("orderBy")).thenReturn("owner"); //had to add these because they were additional queries that
+  when(ctx.queryParam("sortorder")).thenReturn("asc"); //needed to be mocked
 
     todoController.getTodos(ctx);
 
@@ -385,6 +396,9 @@ void canGetAllTodos() throws IOException {
   when(ctx.queryParamAsClass("limit", Integer.class)).thenReturn(limitValidator);
   when(limitValidator.getOrDefault(0)).thenReturn(0);
 
+  when(ctx.queryParam("orderBy")).thenReturn("owner"); //had to add these because they were additional queries that
+  when(ctx.queryParam("sortorder")).thenReturn("asc"); //needed to be mocked
+
     todoController.getTodos(ctx);
 
     verify(ctx).json(todoArrayListCaptor.capture());
@@ -415,6 +429,9 @@ void canGetAllTodos() throws IOException {
   when(ctx.queryParamAsClass("limit", Integer.class)).thenReturn(limitValidator);
   when(limitValidator.getOrDefault(0)).thenReturn(0);
 
+  when(ctx.queryParam("orderBy")).thenReturn("owner"); //had to add these because they were additional queries that
+  when(ctx.queryParam("sortorder")).thenReturn("asc"); //needed to be mocked
+
     todoController.getTodos(ctx);
 
     verify(ctx).json(todoArrayListCaptor.capture());
@@ -428,8 +445,8 @@ void canGetAllTodos() throws IOException {
     assertEquals(1, todoArrayListCaptor.getValue().size());
     }
 
-        @Test
-    void testCategoriesFilter() {
+  @Test
+  void testCategoriesFilter() {
     String category = "chores"; //string for owner
 
     Map<String, List<String>> queryParams = new HashMap<>();
@@ -448,6 +465,9 @@ void canGetAllTodos() throws IOException {
   when(ctx.queryParamAsClass("limit", Integer.class)).thenReturn(limitValidator);
   when(limitValidator.getOrDefault(0)).thenReturn(0);
 
+  when(ctx.queryParam("orderBy")).thenReturn("owner"); //had to add these because they were additional queries that
+  when(ctx.queryParam("sortorder")).thenReturn("asc"); //needed to be mocked
+
     todoController.getTodos(ctx);
 
     verify(ctx).json(todoArrayListCaptor.capture());
@@ -458,6 +478,12 @@ void canGetAllTodos() throws IOException {
     assertFalse(returned.isEmpty());
     assertEquals("chores", returned.get(0).category);
     }
+
+
+
+
+
+
   }
 
 

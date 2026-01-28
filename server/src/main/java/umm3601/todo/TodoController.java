@@ -185,18 +185,19 @@ public class TodoController implements Controller {
         .check(it -> it.matches(STATUS_REGEX), "User must have a legal status")
         .get();
 
-        Boolean boolStatus = Boolean.valueOf(status);
+        Boolean boolStatus = switch (status) {
+          case "complete" -> true;            //if status is "complete," then the boolean value returned is true
+          case "incomplete" -> false;         //if the status is "incomplete," then the value returned is false
+          default -> throw new IllegalArgumentException("Unexpected status: " + status);
+        };  //in the case that the status is neither "compete" nor "incomplete,"
+            // then and exception is thrown that stops execution
 
-      filters.add(eq("status", boolStatus));
+     filters.add(eq("status", boolStatus));
     }
 
     Bson combinedFilter = filters.isEmpty() ? new Document() : and(filters);
 
-    return combinedFilter;
-
-    //else
-
-
+     return combinedFilter;
 
     // if (ctx.queryParamMap().containsKey(COMPANY_KEY)) {
     //   Pattern pattern = Pattern.compile(Pattern.quote(ctx.queryParam(COMPANY_KEY)), Pattern.CASE_INSENSITIVE);

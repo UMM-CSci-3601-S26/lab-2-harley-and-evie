@@ -394,6 +394,39 @@ void canGetAllTodos() throws IOException {
 
     assertFalse(returned.isEmpty());
     }
+
+    @Test
+    void testOwnerFilter() {
+    String owner = "Marty"; //string for owner
+
+    Map<String, List<String>> queryParams = new HashMap<>();
+
+    queryParams.put("owner", Arrays.asList(new String[] {owner}));
+
+    when(ctx.queryParamMap()).thenReturn(queryParams);
+    when(ctx.queryParam("owner")).thenReturn(owner);
+
+  Validator<String> ownerValidator = mock(Validator.class);
+  when(ctx.queryParamAsClass("owner", String.class)).thenReturn(ownerValidator);
+  when(ownerValidator.check(any(), anyString())).thenReturn(ownerValidator);
+  when(ownerValidator.get()).thenReturn(owner);
+
+  Validator<Integer> limitValidator = mock(Validator.class);
+  when(ctx.queryParamAsClass("limit", Integer.class)).thenReturn(limitValidator);
+  when(limitValidator.getOrDefault(0)).thenReturn(0);
+
+    todoController.getTodos(ctx);
+
+    verify(ctx).json(todoArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    List<Todo> returned = todoArrayListCaptor.getValue();
+
+    assertFalse(returned.isEmpty());
+    assertEquals("Marty", returned.get(0).owner);
+
+    assertEquals(1, todoArrayListCaptor.getValue().size());
+    }
   }
 
 

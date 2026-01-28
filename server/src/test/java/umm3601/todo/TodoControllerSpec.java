@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 // import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
 // import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -112,17 +114,26 @@ public class TodoControllerSpec {
         .append("body", "Wash shirts and pants")
         .append("status", false)
         .append("category", "chores"));
+
     testTodos.add(
       new Document()
         .append("owner", "Marty")
         .append("body", "Buy applesauce from Willie's")
         .append("status", false)
         .append("category", "groceries"));
+
     testTodos.add(
       new Document()
         .append("owner", "Katie")
         .append("body", "Calculus Assignment #3")
         .append("status", true)
+        .append("category", "homework"));
+
+    testTodos.add(
+      new Document()
+        .append("owner", "Katy")
+        .append("body", "CSCI Lab #2")
+        .append("status", false)
         .append("category", "homework"));
 
     taskId = new ObjectId();
@@ -237,10 +248,10 @@ void canGetAllTodos() throws IOException {
    * @throws IOException
    */
   @Test
-  void canGetTodoStatus() throws IOException {
+  void canGetCompleteTodoStatus() throws IOException {
 
   String completeStatus = "complete";
-  String completeStatusString = completeStatus.toString();
+  String completeStatusString = completeStatus.toString(); //this variable was unneeded lol
 
     Map<String, List<String>> queryParams = new HashMap<>();
 
@@ -258,7 +269,7 @@ void canGetAllTodos() throws IOException {
   Validator<String> statusValidator = mock(Validator.class);
   when(ctx.queryParamAsClass("status", String.class)).thenReturn(statusValidator);
   when(statusValidator.check(any(), anyString())).thenReturn(statusValidator);
-  when(statusValidator.get()).thenReturn("complete");
+  when(statusValidator.get()).thenReturn(completeStatus);
 
   Validator<Integer> limitValidator = mock(Validator.class);
   when(ctx.queryParamAsClass("limit", Integer.class)).thenReturn(limitValidator);
@@ -285,6 +296,104 @@ void canGetAllTodos() throws IOException {
 
     }
   }
-}
+
+  @Test
+  void canGetInCompleteTodoStatus() throws IOException {
+
+  String incompleteStatus = "incomplete";
+
+    Map<String, List<String>> queryParams = new HashMap<>();
+
+    queryParams.put("status", Arrays.asList(new String[] {incompleteStatus}));
+
+    when(ctx.queryParamMap()).thenReturn(queryParams);
+    when(ctx.queryParam("status")).thenReturn(incompleteStatus);
+
+  Validator<String> statusValidator = mock(Validator.class);
+  when(ctx.queryParamAsClass("status", String.class)).thenReturn(statusValidator);
+  when(statusValidator.check(any(), anyString())).thenReturn(statusValidator);
+  when(statusValidator.get()).thenReturn(incompleteStatus);
+
+  Validator<Integer> limitValidator = mock(Validator.class);
+  when(ctx.queryParamAsClass("limit", Integer.class)).thenReturn(limitValidator);
+  when(limitValidator.getOrDefault(0)).thenReturn(0);
+
+    todoController.getTodos(ctx);
+
+    verify(ctx).json(todoArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    // Confirm that todos have desired status: incomplete
+    for (Todo todo : todoArrayListCaptor.getValue()) {
+      assertFalse(todo.status);
+    }
+  }
+
+  @Test
+  void canGetInvalidTodoStatus() throws IOException {
+
+  String invalidStatus = "complet";
+
+    Map<String, List<String>> queryParams = new HashMap<>();
+
+    queryParams.put("status", Arrays.asList(new String[] {invalidStatus}));
+    when(ctx.queryParamMap()).thenReturn(queryParams);
+    when(ctx.queryParam("status")).thenReturn(invalidStatus);
+
+  Validator<String> statusValidator = mock(Validator.class);
+  when(ctx.queryParamAsClass("status", String.class)).thenReturn(statusValidator);
+  when(statusValidator.check(any(), anyString())).thenReturn(statusValidator);
+  when(statusValidator.get()).thenReturn(invalidStatus);
+
+  Validator<Integer> limitValidator = mock(Validator.class);
+  when(ctx.queryParamAsClass("limit", Integer.class)).thenReturn(limitValidator);
+  when(limitValidator.getOrDefault(0)).thenReturn(0);
+    Exception thrown = assertThrows(IllegalArgumentException.class, () -> todoController.getTodos(ctx));
+
+    assertEquals("Unexpected status: complet", thrown.getMessage());
+
+    //We realize we missed this bit of coverage from the last lab and wanted to
+    //test how the server would act if given an invalid input for its contents
+
+    }
+
+  @Test
+  void testContains() {
+
+  String searchString = " "; //used " " because all generated todos will have " " in the body
+
+    Map<String, List<String>> queryParams = new HashMap<>();
+
+    queryParams.put("contains", Arrays.asList(new String[] {searchString}));
+  // When the code being tested calls `ctx.queryParamMap()` return the
+  // the `queryParams` map we just built.
+    when(ctx.queryParamMap()).thenReturn(queryParams);
+  // When the code being tested calls `ctx.queryParam("status")` return the
+  // `completeStatusString`.
+    when(ctx.queryParam("contains")).thenReturn(searchString);
+
+
+  // Create a validator that confirms that when we ask for the value associated with
+  // You can actually put whatever you want here, because it's only used in the generation
+  // of testing error reports, but using the actually key value will make those reports more informative.
+  Validator<String> containsValidator = mock(Validator.class);
+  when(ctx.queryParamAsClass("contains", String.class)).thenReturn(containsValidator);
+  when(containsValidator.check(any(), anyString())).thenReturn(containsValidator);
+  when(containsValidator.get()).thenReturn(searchString);
+
+  Validator<Integer> limitValidator = mock(Validator.class);
+  when(ctx.queryParamAsClass("limit", Integer.class)).thenReturn(limitValidator);
+  when(limitValidator.getOrDefault(0)).thenReturn(0);
+
+    todoController.getTodos(ctx);
+
+    verify(ctx).json(todoArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    List<Todo> returned = todoArrayListCaptor.getValue();
+
+    assertFalse(returned.isEmpty());
+    }
+  }
 
 

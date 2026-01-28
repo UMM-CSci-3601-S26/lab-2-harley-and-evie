@@ -1,5 +1,6 @@
 package umm3601.todo;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -26,6 +27,7 @@ public class TodoSpec {
     todo2._id = FAKE_ID_STRING_1;
 
     assertTrue(todo1._id.equals(todo2._id));
+    assertTrue(todo1.equals(todo2));
   }
 
   @Test
@@ -45,10 +47,17 @@ public class TodoSpec {
 
   @SuppressWarnings("unlikely-arg-type")
   @Test
-  void usersAreNotEqualToOtherKindsOfThings() {
+  void todosAreNotEqualToOtherKindsOfThings() {
     todo1._id = FAKE_ID_STRING_1;
     // a user is not equal to its id even though id is used for checking equality
     assertFalse(todo1.equals(FAKE_ID_STRING_1));
+  }
+
+  @Test
+  void toStringTest() {
+    todo1.toString();
+    todo1.body = "laundry";
+    assertEquals("laundry", todo1.toString());
   }
 }
 

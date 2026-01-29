@@ -495,6 +495,7 @@ void canGetAllTodos() throws IOException {
  when(ctx.queryParamAsClass("contains", String.class)).thenReturn(containsValidator);
  when(containsValidator.check(any(), anyString())).thenReturn(containsValidator);
  when(containsValidator.get()).thenReturn(searchString);
+ //mock validator for contains taken from containsTest
 
  queryParams.put("owner", Arrays.asList(new String[] {owner}));
 
@@ -505,10 +506,12 @@ void canGetAllTodos() throws IOException {
  when(ctx.queryParamAsClass("owner", String.class)).thenReturn(ownerValidator);
  when(ownerValidator.check(any(), anyString())).thenReturn(ownerValidator);
  when(ownerValidator.get()).thenReturn(owner);
+//mock validator for owner filter taken from testOwnerFilter
 
  Validator<Integer> limitValidator = mock(Validator.class);
  when(ctx.queryParamAsClass("limit", Integer.class)).thenReturn(limitValidator);
  when(limitValidator.getOrDefault(0)).thenReturn(0);
+ //limit mock validator which must be included
 
  when(ctx.queryParam("orderBy")).thenReturn("owner"); //had to add these because they were additional queries that
  when(ctx.queryParam("sortorder")).thenReturn("asc"); //needed to be mocked
@@ -521,8 +524,10 @@ void canGetAllTodos() throws IOException {
  List<Todo> returned = todoArrayListCaptor.getValue();
 
  assertFalse(returned.isEmpty());
+ //at least one todo is displayed
 
  assertEquals("Marty", returned.get(0).owner);
+ //Marty is the owner of the first todo
 
  assertEquals(1, todoArrayListCaptor.getValue().size());
   }

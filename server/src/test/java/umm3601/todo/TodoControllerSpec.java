@@ -479,11 +479,58 @@ void canGetAllTodos() throws IOException {
     assertEquals("chores", returned.get(0).category);
     }
 
+  @Test
+  void testMultipleFilters() {
+  String searchString = " "; //string for contains
+  String owner = "Marty"; //string for owner
 
+  Map<String, List<String>> queryParams = new HashMap<>();
 
+  queryParams.put("contains", Arrays.asList(new String[] {searchString}));
 
+  when(ctx.queryParamMap()).thenReturn(queryParams);
+  when(ctx.queryParam("contains")).thenReturn(searchString);
 
+ Validator<String> containsValidator = mock(Validator.class);
+ when(ctx.queryParamAsClass("contains", String.class)).thenReturn(containsValidator);
+ when(containsValidator.check(any(), anyString())).thenReturn(containsValidator);
+ when(containsValidator.get()).thenReturn(searchString);
+ //mock validator for contains taken from containsTest
 
+ queryParams.put("owner", Arrays.asList(new String[] {owner}));
+
+  when(ctx.queryParamMap()).thenReturn(queryParams);
+  when(ctx.queryParam("owner")).thenReturn(owner);
+
+ Validator<String> ownerValidator = mock(Validator.class);
+ when(ctx.queryParamAsClass("owner", String.class)).thenReturn(ownerValidator);
+ when(ownerValidator.check(any(), anyString())).thenReturn(ownerValidator);
+ when(ownerValidator.get()).thenReturn(owner);
+//mock validator for owner filter taken from testOwnerFilter
+
+ Validator<Integer> limitValidator = mock(Validator.class);
+ when(ctx.queryParamAsClass("limit", Integer.class)).thenReturn(limitValidator);
+ when(limitValidator.getOrDefault(0)).thenReturn(0);
+ //limit mock validator which must be included
+
+ when(ctx.queryParam("orderBy")).thenReturn("owner"); //had to add these because they were additional queries that
+ when(ctx.queryParam("sortorder")).thenReturn("asc"); //needed to be mocked
+
+ todoController.getTodos(ctx);
+
+ verify(ctx).json(todoArrayListCaptor.capture());
+ verify(ctx).status(HttpStatus.OK);
+
+ List<Todo> returned = todoArrayListCaptor.getValue();
+
+ assertFalse(returned.isEmpty());
+ //at least one todo is displayed
+
+ assertEquals("Marty", returned.get(0).owner);
+ //Marty is the owner of the first todo
+
+ assertEquals(1, todoArrayListCaptor.getValue().size());
   }
+}
 
 

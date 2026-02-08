@@ -180,11 +180,15 @@ public class TodoController implements Controller {
     return combinedFilter;
   }
 
-  private Bson constructSortingOrder(Context ctx) {
-    Set<String> allowedFields = Set.of("owner", "body", "status", "category");
-    String orderBy = ctx.queryParam("orderBy");
-    return Sorts.ascending(orderBy);
-    //this method's coverage is covered in the getAllTodos test (as well as others)
+  Bson constructSortingOrder(Context ctx) {
+    if (ctx.queryParamMap().containsKey("orderBy")) {
+      Set<String> allowedFields = Set.of("owner", "body", "status", "category");
+      String orderBy = ctx.queryParam("orderBy");
+      return Sorts.ascending(orderBy);
+    }
+      //realized that this needed to be conditional in order to make it an optional sorting order.
+      //before, we didn't include an if statement because we thought that this scheme of sorting order would
+      //be the only option. We didn't think about the possibility of no sorting order at all.
+    return null;
   }
-
 }
